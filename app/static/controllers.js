@@ -328,7 +328,8 @@ app.classy.controller({
         var users = [];
         var userids = {};
         userids[pull.user.id] = 1;
-        _.each(pull._reviews, function(review) {
+        // first lets get all review approval and change rejection actions
+        _.each(pull._reviews.filter(function (review) { return review.state.toLowerCase() !== 'commented' }), function(review) {
             if (!userids[review.user.id] && IGNORED_LOGINS.indexOf(review.user.login) === -1) {
                 users.push({
                     html_url: review.user.html_url,
@@ -339,6 +340,19 @@ app.classy.controller({
                 userids[review.user.id] = 1;
             }
         });
+        // then get all of the review comments
+        _.each(pull._reviews.filter(function (review) { return review.state.toLowerCase() === 'commented' }), function(review) {
+            if (!userids[review.user.id] && IGNORED_LOGINS.indexOf(review.user.login) === -1) {
+                users.push({
+                    html_url: review.user.html_url,
+                    login: review.user.login,
+                    avatar_url: review.user.avatar_url,
+                    action: review.state.toLowerCase()
+                });
+                userids[review.user.id] = 1;
+            }
+        });
+        // lastly get all of the PR comments
         _.each(pull._comments, function(comment) {
             if (!userids[comment.user.id] && IGNORED_LOGINS.indexOf(comment.user.login) === -1) {
                 users.push({
@@ -350,7 +364,6 @@ app.classy.controller({
                 userids[comment.user.id] = 1;
             }
         });
-        console.log(users);
         return users;
     },
 
@@ -402,8 +415,8 @@ app.classy.controller({
     },
 
     reviewStatus: function(pull) {
-        var requests = pull._reviews.filter(function(review) { return review.state.toLowerCase() === 'changes_requested' }).length
-        var approvals = pull._reviews.filter(function(review) { return review.state.toLowerCase() === 'approved' }).length
+        var requests = (pull._reviews || []).filter(function(review) { return review.state.toLowerCase() === 'changes_requested' }).length
+        var approvals = (pull._reviews || []).filter(function(review) { return review.state.toLowerCase() === 'approved' }).length
 
         if (requests > 0) {
             return 'changes_requested';
