@@ -71,7 +71,7 @@
                  </p>
 
                  <table ng-class="{hidden: !pull._expanded}" class="expanded table table-condensed">
-                     <tr ng-repeat="event in pull._events | orderBy:'_date':false">
+                     <tr ng-repeat="event in pull._events | orderBy:'_date':true">
                          <td>
                              <span ng-if="event._type === 'commit'" title="commit added" class="octicon octicon-git-commit"></span>
                              <span ng-if="event._type === 'comment'" title="comment posted" class="octicon octicon-comment"></span>
@@ -79,6 +79,9 @@
                              <span ng-if="event._type === 'status-success'" class="octicon octicon-check"></span>
                              <span ng-if="event._type === 'status-failure'" class="octicon octicon-x"></span>
                              <span ng-if="event._type === 'status-pending'" class="octicon octicon-hourglass"></span>
+                             <span ng-if="event._type === 'commented'" class="octicon octicon-comment"></span>
+                             <span ng-if="event._type === 'approved'" class="octicon octicon octicon-check"></span>
+                             <span ng-if="event._type === 'changes_requested'" class="octicon octicon-x"></span>
                              <a href="{{ event._url }}">
                                  {{ event._summary }}
                              </a>
@@ -106,7 +109,7 @@
                         <span ng-if="pull._last_actor.type === 'commit'" title="commit added" class="octicon octicon-git-commit"></span>
                         <span ng-if="pull._last_actor.type === 'comment'" title="comment posted" class="octicon octicon-comment"></span>
                         <span ng-if="pull._last_actor.type === 'creation'" title="pull request created" class="octicon octicon-git-pull-request"></span>
-                        <span ng-if="pull._last_actor.type === 'commented'" title="review comment posted" class="octicon octicon-git-pull-request"></span>
+                        <span ng-if="pull._last_actor.type === 'commented'" title="review comment posted" class="octicon octicon-comment"></span>
                         <span ng-if="pull._last_actor.type === 'approved'" title="review approved" class="octicon octicon-check"></span>
                         <span ng-if="pull._last_actor.type === 'changes_requested'" title="review changes requested" class="octicon octicon-x"></span>
                     </a>

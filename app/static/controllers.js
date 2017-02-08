@@ -296,6 +296,15 @@ app.classy.controller({
                 _date: comment.created_at
             });
         });
+        _.each(pull._reviews || [], function(review) {
+            //console.dir(comment);
+            events.push({
+                _type: review.state.toLowerCase(),
+                _summary: '(by @' + review.user.login +') ' + truncate(review.body, 80),
+                _url: review.html_url,
+                _date: review.submitted_at
+            });
+        });
         //console.dir(events);
         //return [];
         return events;
