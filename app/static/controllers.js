@@ -401,6 +401,21 @@ app.classy.controller({
         return statuses[0];  // confusing, I know
     },
 
+    reviewStatus: function(pull) {
+        var requests = pull._reviews.filter(function(review) { return review.state.toLowerCase() === 'changes_requested' }).length
+        var approvals = pull._reviews.filter(function(review) { return review.state.toLowerCase() === 'approved' }).length
+
+        if (requests > 0) {
+            return 'changes_requested';
+        }
+        else if (approvals >= 2) {
+            return 'approved';
+        }
+        else {
+            return 'not_reviewed';
+        }
+    },
+
     loadReviews: function(pull, callback) {
         this.$http
         .get('/githubproxy/' + pull.reviews_url)
@@ -436,7 +451,7 @@ app.classy.controller({
             }
             pull._comments = data._data;
 
-            var comments = pull._comments.filter(function (comment) { IGNORED_LOGINS.indexOf(comment.user.login) === -1 });
+            var comments = pull._comments.filter(function (comment) { return IGNORED_LOGINS.indexOf(comment.user.login) === -1 });
             if (comments.length) {
                 pull._last_comment = comments[comments.length - 1];
                 this.setLastActor(pull, {

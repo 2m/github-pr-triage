@@ -41,7 +41,8 @@
          <th class="people">People</th>
          <th class="last-actor">Last actor</th>
          <th class="state" title="Indicates whether it's currently mergeable">M*</th>
-         <th class="state" title="Indicates its status">S*</th>
+         <th class="state" title="Indicates commit status">S*</th>
+         <th class="state" title="Indicates review status">R*</th>
          <th class="changes" ng-if="use_changes">Changes</th>
          <th class="labels" ng-if="use_labels">Labels</th>
      </tr>
@@ -124,14 +125,19 @@
                  <!-- <span ng-if="!hasMergeability(pull)"  title="Don't know if it's mergeable yet"></span> -->
             </td>
             <td>
-
                  <a ng-if="hasStatuses(pull)" href="{{ lastStatus(pull).target_url }}">
                      <span ng-if="isLastStatus(pull, 'success')" title="Last test succeeded" class="good glyphicon glyphicon-ok"></span>
                      <span ng-if="isLastStatus(pull, 'failure')" title="Last test failed!" class="bad glyphicon glyphicon-remove"></span>
                      <span ng-if="isLastStatus(pull, 'pending')" title="Latest test pending" class="maybe glyphicon glyphicon-time"></span>
                  </a>
                  <!-- <span ng-if="!hasStatuses(pull)" class="maybe octicon octicon-question" title="Don't know statuses yet"></span> -->
-
+            </td>
+            <td>
+                 <a href="{{ pull.html_url }}">
+                     <span ng-if="reviewStatus(pull)=='changes_requested'" title="Changes requested" class="bad glyphicon glyphicon-remove"></span>
+                     <span ng-if="reviewStatus(pull)=='approved'" title="Review completed" class="good glyphicon glyphicon-ok"></span>
+                 </a>
+                 <!-- <span ng-if="!hasStatuses(pull)" class="maybe octicon octicon-question" title="Don't know statuses yet"></span> -->
             </td>
             <td ng-if="use_changes" class="changes">
                 <a href="{{ pull.html_url }}/files" target="_blank">
@@ -150,7 +156,7 @@
      </tbody>
     </table>
     <p class="table-foot-note" ng-class="{hidden: !group.pulls.length}">
-      <b>M*</b> means <b>Mergeable</b> and <b>S*</b> means <b>Status</b>
+      <b>M*</b> means <b>Mergeable</b>. <b>S*</b> means <b>Commit status</b> and <b>R*</b> means <b>Review status</b>
     </p>
 </div>
 <p>
