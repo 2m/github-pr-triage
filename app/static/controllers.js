@@ -29,8 +29,8 @@ function findBugNumbers(title) {
 
 
 var DEFAULT_SETTINGS = {
-    bug_column: true,
-    assignee_column: true,
+    bug_column: false,
+    assignee_column: false,
     changes_column: false,
     labels_column: false
 };
