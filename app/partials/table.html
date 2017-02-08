@@ -106,6 +106,9 @@
                         <span ng-if="pull._last_actor.type === 'commit'" title="commit added" class="octicon octicon-git-commit"></span>
                         <span ng-if="pull._last_actor.type === 'comment'" title="comment posted" class="octicon octicon-comment"></span>
                         <span ng-if="pull._last_actor.type === 'creation'" title="pull request created" class="octicon octicon-git-pull-request"></span>
+                        <span ng-if="pull._last_actor.type === 'commented'" title="review comment posted" class="octicon octicon-git-pull-request"></span>
+                        <span ng-if="pull._last_actor.type === 'approved'" title="review approved" class="octicon octicon-check"></span>
+                        <span ng-if="pull._last_actor.type === 'changes_requested'" title="review changes requested" class="octicon octicon-x"></span>
                     </a>
 
             </td>

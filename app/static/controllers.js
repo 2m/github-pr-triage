@@ -322,6 +322,12 @@ app.classy.controller({
                 userids[comment.user.id] = 1;
             }
         });
+        _.each(pull._reviews, function(review) {
+            if (!userids[review.user.id]) {
+                users.push(review.user);
+                userids[review.user.id] = 1;
+            }
+        });
         return users;
     },
 
@@ -371,6 +377,32 @@ app.classy.controller({
         return statuses[0];  // confusing, I know
     },
 
+    loadReviews: function(pull, callback) {
+        this.$http
+        .get('/githubproxy/' + pull.reviews_url)
+        .success(function(data) {
+            if (data._ratelimit_limit) {
+                this.ratelimit.update(data._ratelimit_limit, data._ratelimit_remaining);
+            }
+            pull._reviews = data._data;
+            if (pull._reviews.length) {
+                pull._last_review = pull._reviews[pull._reviews.length - 1];
+                this.setLastActor(pull, {
+                    user: pull._last_review.user,
+                    type: pull._last_review.state.toLowerCase(), // COMMENTED, APPROVED or CHANGES_REQUESTED
+                    url: pull._last_review.html_url,
+                    date: pull._last_review.submitted_at
+                });
+            }
+        }.bind(this))
+        .error(function(data, status) {
+            console.warn(data, status);
+        })
+        .finally(function() {
+            if (callback) callback();
+        });
+    },
+
     loadComments: function(pull, callback) {
         this.$http
         .get('/githubproxy/' + pull.comments_url)
@@ -381,7 +413,12 @@ app.classy.controller({
             pull._comments = data._data;
             if (pull._comments.length) {
                 pull._last_comment = pull._comments[pull._comments.length - 1];
-                this.setLastActor(pull);
+                this.setLastActor(pull, {
+                    user: pull._last_comment.user,
+                    type: "comment",
+                    url: pull._last_comment.html_url,
+                    date: pull._last_comment.created_at
+                });
             }
         }.bind(this))
         .error(function(data, status) {
@@ -419,7 +456,12 @@ app.classy.controller({
             pull._commits = data._data;
             if (pull._commits.length > 1) {
                 pull._last_commit = pull._commits[pull._commits.length - 1];
-                this.setLastActor(pull);
+                this.setLastActor(pull, {
+                    user: pull._last_commit.author,
+                    type: "commit",
+                    url: pull._last_commit.html_url,
+                    date: pull._last_commit.commit.date
+                });
             }
         }.bind(this))
         .error(function(data, status) {
@@ -447,40 +489,18 @@ app.classy.controller({
         });
     },
 
-    setLastActor: function(pull) {
-        if (pull._last_commit && pull._last_comment) {
-            // but who was first?!
-            if (pull._last_commit.commit.date > pull._last_comment.created_at) {
-                pull._last_actor = {
-                    user: pull._last_commit.author,
-                    type: "commit",
-                    url: pull._last_commit.html_url
-                };
-            } else {
-                pull._last_actor = {
-                    user: pull._last_comment.user,
-                    type: "comment",
-                    url: pull._last_comment.html_url
-                };
-            }
-        } else if (pull._last_commit) {
-            pull._last_actor = {
-                user: pull._last_commit.author,
-                type: "commit",
-                url: pull._last_commit.html_url
-            };
-        } else if (pull._last_comment) {
-            pull._last_actor = {
-                user: pull._last_comment.user,
-                type: "comment",
-                url: pull._last_comment.html_url
-            };
-        } else {
-            pull._last_actor = {
-                user: pull.user,
-                type: "creation",
-                url: pull.html_url
-            };
+    setLastActorToCreation: function(pull) {
+        pull._last_actor = {
+            user: pull.user,
+            type: "creation",
+            url: pull.html_url,
+            date: pull.created_at
+        };
+    },
+
+    setLastActor: function(pull, possiblyLast) {
+        if (possiblyLast.date > pull._last_actor.date) {
+            pull._last_actor = possiblyLast;
         }
     },
 
@@ -506,18 +526,24 @@ app.classy.controller({
                 bugs = _.union(bugs, pull._bugs);
                 pull._last_user = pull.user;
                 pull._last_user_time = pull.created_at;
-                this.setLastActor(pull);
+                this.setLastActorToCreation(pull);
+
+                // this is not populated yet because API is still experimental https://developer.github.com/changes/2016-12-14-reviews-api/
+                pull.reviews_url = pull.review_comments_url.replace("/comments", "/reviews");
+
                 pulls.push(pull);
                 this.loadComments(pull, function() {
                     this.nanobarIncrement(increment);
-                    this.loadStatuses(pull, function() {
-                        this.nanobarIncrement(increment);
-                        this.loadCommits(pull, function() {
+                    this.loadReviews(pull, function() {
+                        this.loadStatuses(pull, function () {
                             this.nanobarIncrement(increment);
-                            this.loadPull(pull, function() {
+                            this.loadCommits(pull, function () {
                                 this.nanobarIncrement(increment);
-                                this.loadLabels(pull, function() {
+                                this.loadPull(pull, function () {
                                     this.nanobarIncrement(increment);
+                                    this.loadLabels(pull, function () {
+                                        this.nanobarIncrement(increment);
+                                    }.bind(this));
                                 }.bind(this));
                             }.bind(this));
                         }.bind(this));

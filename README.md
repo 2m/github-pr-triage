@@ -19,12 +19,14 @@ Ubuntu:
 
     sudo apt-get install python-pip memcached
     
-Archlinux:
+Arch Linux:
 
     pacman -S memcached libmemcached
 
 ### Requirements
 
+    python -m venv venv // create a new python environment
+    source venv/bin/activate
     pip install -r requirements.txt
 
 ## Configure

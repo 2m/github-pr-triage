@@ -49,13 +49,18 @@ class ProxyView(MethodView):
         long_key = 'long-' + key
         short_value, long_value = cache.get_many(*[short_key, long_key])
 
+        headers = {
+            # reviews is an experimental api https://developer.github.com/changes/2016-12-14-reviews-api/
+            'Accept': 'application/vnd.github.black-cat-preview+json'
+        }
+
         if short_value:
             value = json.loads(short_value)
         elif long_value:
             value = json.loads(long_value)
 
             if value.get('_etag'):
-                headers = {'If-None-Match': value['_etag']}
+                headers.update({'If-None-Match': value['_etag']})
                 self._attach_auth(headers)
                 # print path
                 # print headers
@@ -83,7 +88,6 @@ class ProxyView(MethodView):
 
         if not value:
             print("GET", self.base + path)
-            headers = {}
             self._attach_auth(headers)
             response = requests.get(self.base + path, headers=headers)
 
