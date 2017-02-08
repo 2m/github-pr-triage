@@ -35,6 +35,11 @@ var DEFAULT_SETTINGS = {
     labels_column: false
 };
 
+var IGNORED_LOGINS = [
+    "typesafehub-validator",
+    "akka-ci"
+]
+
 /* Controllers */
 
 var app = angular.module('triage.controllers', ['classy', 'LocalForageModule']);
@@ -79,7 +84,6 @@ app.classy.controller({
     name: 'SettingsController',
     inject: ['$scope', '$location', '$localForage', 'gobacker'],
     init: function() {
-
         this.$scope.settings = DEFAULT_SETTINGS;
         this.$scope.loading_settings = true;
         this.$localForage.getItem('settings')
@@ -324,14 +328,8 @@ app.classy.controller({
         var users = [];
         var userids = {};
         userids[pull.user.id] = 1;
-        users.push({
-            html_url: pull.user.html_url,
-            login: pull.user.login,
-            avatar_url: pull.user.avatar_url,
-            action: "created"
-        });
         _.each(pull._reviews, function(review) {
-            if (!userids[review.user.id]) {
+            if (!userids[review.user.id] && IGNORED_LOGINS.indexOf(review.user.login) === -1) {
                 users.push({
                     html_url: review.user.html_url,
                     login: review.user.login,
@@ -342,7 +340,7 @@ app.classy.controller({
             }
         });
         _.each(pull._comments, function(comment) {
-            if (!userids[comment.user.id]) {
+            if (!userids[comment.user.id] && IGNORED_LOGINS.indexOf(comment.user.login) === -1) {
                 users.push({
                     html_url: comment.user.html_url,
                     login: comment.user.login,
@@ -437,8 +435,10 @@ app.classy.controller({
                 this.ratelimit.update(data._ratelimit_limit, data._ratelimit_remaining);
             }
             pull._comments = data._data;
-            if (pull._comments.length) {
-                pull._last_comment = pull._comments[pull._comments.length - 1];
+
+            var comments = pull._comments.filter(function (comment) { IGNORED_LOGINS.indexOf(comment.user.login) === -1 });
+            if (comments.length) {
+                pull._last_comment = comments[comments.length - 1];
                 this.setLastActor(pull, {
                     user: pull._last_comment.user,
                     type: "comment",
