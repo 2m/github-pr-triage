@@ -324,19 +324,35 @@ app.classy.controller({
         var users = [];
         var userids = {};
         userids[pull.user.id] = 1;
-        users.push(pull.user);
-        _.each(pull._comments, function(comment) {
-            if (!userids[comment.user.id]) {
-                users.push(comment.user);
-                userids[comment.user.id] = 1;
-            }
+        users.push({
+            html_url: pull.user.html_url,
+            login: pull.user.login,
+            avatar_url: pull.user.avatar_url,
+            action: "created"
         });
         _.each(pull._reviews, function(review) {
             if (!userids[review.user.id]) {
-                users.push(review.user);
+                users.push({
+                    html_url: review.user.html_url,
+                    login: review.user.login,
+                    avatar_url: review.user.avatar_url,
+                    action: review.state.toLowerCase()
+                });
                 userids[review.user.id] = 1;
             }
         });
+        _.each(pull._comments, function(comment) {
+            if (!userids[comment.user.id]) {
+                users.push({
+                    html_url: comment.user.html_url,
+                    login: comment.user.login,
+                    avatar_url: comment.user.avatar_url,
+                    action: "commented"
+                });
+                userids[comment.user.id] = 1;
+            }
+        });
+        console.log(users);
         return users;
     },
 
@@ -360,6 +376,7 @@ app.classy.controller({
             pull._additions = data.additions;
             pull._deletions = data.deletions;
             pull._changed_files = data.changed_files;
+            pull.uniqueUsers = this.uniqueUsers(pull);
         }.bind(this)).error(function(data, status) {
             console.warn(data, status);
         })

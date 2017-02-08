@@ -17,6 +17,14 @@ img.avatar {
     width: 24px;
     height: 24px;
 }
+.good-avatar {
+    border: 2px solid green;
+    padding: 1px;
+}
+.bad-avatar {
+    border: 2px solid red;
+    padding: 1px;
+}
 .count-comments {
     font-size: 80%;
 }

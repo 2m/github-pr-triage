@@ -98,9 +98,9 @@
                  </a>
             </td>
              <td>
-                 <a ng-repeat="user in uniqueUsers(pull)"
-                    href="{{ user.html_url }}" target="_blank" title="{{ user.login }}">
-                     <img class="avatar" ng-src="{{ user.avatar_url}}" alt="{{ user.login }}">
+                 <a ng-repeat="user in pull.uniqueUsers"
+                    href="{{ user.html_url }}" target="_blank" title="{{ user.login }} {{ user.action }}">
+                     <img class="avatar" ng-class="{'good-avatar': user.action === 'approved', 'bad-avatar': user.action === 'changes_requested'}" ng-src="{{ user.avatar_url}}" alt="{{ user.login }}">
                  </a>
             </td>
             <td>
