@@ -7,7 +7,7 @@ from whitenoise import WhiteNoise
 from app import app, DEBUG
 
 if DEBUG:
-    print "Please don't do this in production"
+    print("Please don't do this in production")
     app.debug = DEBUG
 
 
