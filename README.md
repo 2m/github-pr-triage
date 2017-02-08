@@ -18,6 +18,10 @@ License: [MPL2](http://www.mozilla.org/MPL/2.0/)
 Ubuntu:
 
     sudo apt-get install python-pip memcached
+    
+Archlinux:
+
+    pacman -S memcached libmemcached
 
 ### Requirements
 

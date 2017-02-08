@@ -10,13 +10,12 @@ from flask.ext.cacheify import init_cacheify
 from flask.views import MethodView
 
 
-# MEMCACHE_URL = os.environ.get('MEMCACHE_URL', '127.0.0.1:11211').split(',')
 DEBUG = os.environ.get('DEBUG', False) in ('true', '1', 'y', 'yes')
 GITHUB_OAUTH_TOKEN = os.environ.get('GITHUB_OAUTH_TOKEN')
 
 APP_LOCATION = 'app'
 if os.path.isdir('./dist') and os.listdir('./dist'):
-    print "Note: Serving files from ./dist"
+    print("Note: Serving files from ./dist")
     APP_LOCATION = 'dist'
 
 
@@ -25,8 +24,8 @@ app = Flask(
     static_folder=os.path.join(APP_LOCATION, 'static')
 )
 cache = init_cacheify(app)
-print "Type of cache configured", type(cache.cache)
-print "Cache config", cache.config
+print("Type of cache configured", type(cache.cache))
+print("Cache config", cache.config)
 
 
 class ProxyView(MethodView):
@@ -44,8 +43,8 @@ class ProxyView(MethodView):
         if '://' in path:
             assert path.startswith(self.base)
             path = path.replace(self.base, '')
-        path = '%s?%s' % (path, request.query_string)
-        key = self.prefix + hashlib.md5(path).hexdigest()
+        path = '%s?%s' % (path, request.query_string.decode('utf8'))
+        key = self.prefix + hashlib.md5(path.encode('utf8')).hexdigest()
         short_key = 'short-' + key
         long_key = 'long-' + key
         short_value, long_value = cache.get_many(*[short_key, long_key])
@@ -60,7 +59,7 @@ class ProxyView(MethodView):
                 self._attach_auth(headers)
                 # print path
                 # print headers
-                print "CONDITIONAL GET", self.base + path
+                print("CONDITIONAL GET", self.base + path)
                 response = requests.get(self.base + path, headers=headers)
                 if response.status_code == 304:
                     # it's still fresh!
@@ -83,7 +82,7 @@ class ProxyView(MethodView):
             value = None
 
         if not value:
-            print "GET", self.base + path
+            print("GET", self.base + path)
             headers = {}
             self._attach_auth(headers)
             response = requests.get(self.base + path, headers=headers)
@@ -166,7 +165,7 @@ class Webhook(MethodView):
             cache_key = self._path_to_cache_key(path)
             # print "CACHE_KEY", cache_key
             if cache.get(cache_key):
-                print "\tDELETED", cache_key, 'FOR', path
+                print("\tDELETED", cache_key, 'FOR', path)
                 cache.delete(cache_key)
 
         if not paths:
